@@ -6,7 +6,6 @@ from scipy.special import softmax
 
 NBQUBITS=2
 
-
 def make_circuit(x, t):
     """ x is normalized, x is an angle"""
     qc = qiskit.QuantumCircuit(NBQUBITS)
@@ -20,23 +19,22 @@ def rescale_to_angle(X, X_all):
     X_min, X_max = np.min(X_all, axis=0), np.max(X_all, axis=0)
     return np.pi * (X - X_min) / (X_max - X_min) + np.pi/2
 
+def predict(x,t,nbshots=0):
+    return predict_proba(x, t, nbshots).argmax(axis=1)
 
-def predict(x,t):
-    return predict_proba(x, t).argmax(axis=1)
-    
-
-def predict_proba(X, t):
+def predict_proba(X, t, nbshots=0):
     proba = np.array([_predict_proba(x,t) for x in X])  
     return proba  
 
-def _predict_proba(x, t):
+def _predict_proba(x, t, nbshots=0):
     qc = make_circuit(x, t)
     stateVec = qiskit_quantum_info.Statevector.from_instruction(qc)
     probavec = stateVec.probabilities()    
-    return probavec[:-1]
+    if not nbshots: return probavec[:-1]
+    shots = np.random.multinomial(nbshots, probavec)
+    return shots[:-1]/nbshots
 
-def loss(t,X_train,y_true):
-    y_pred_proba = predict_proba(X_train, t)
+def loss(t,X_train,y_true, nbshots=0):
+    y_pred_proba = predict_proba(X_train, t, nbshots)
     y_pred_proba = softmax(y_pred_proba,axis=1)
     return np.mean(-np.log(y_pred_proba[np.arange(len(y_true)), y_true]))
-    

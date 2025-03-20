@@ -12,8 +12,8 @@ try:
         dataset = pickle.load(f)
 except:
     dataset = datasets.load_iris()
-    with open(IRIS_FILENAME, "wb") as f:
-        pickle.dump(dataset, f)
+    # with open(IRIS_FILENAME, "wb") as f:
+    #     pickle.dump(dataset, f)
         
 X = dataset.data  # type: ignore
 y = dataset.target  # type: ignore
